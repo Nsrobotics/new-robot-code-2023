@@ -1,6 +1,9 @@
 package frc.robot.subsystems;
 
 import com.ctre.phoenix.sensors.WPI_CANCoder;
+import com.ctre.phoenix.sensors.CANCoder;
+import com.ctre.phoenix.sensors.CANCoderConfiguration;
+import com.ctre.phoenix.sensors.SensorInitializationStrategy;
 import com.revrobotics.CANEncoder;
 import com.revrobotics.CANSparkMax;
 import com.revrobotics.CANSparkMaxLowLevel.MotorType;
@@ -28,6 +31,7 @@ public class SwerveModule {
     private final WPI_CANCoder absoluteEncoder;
     private final boolean absoluteEncoderReversed;
     private final double absoluteEncoderOffsetRad;
+    private final CANCoder canCoder;
 
     public SwerveModule(int driveMotorId, int turningMotorId, boolean driveMotorReversed, boolean turningMotorReversed,
             int absoluteEncoderId, double absoluteEncoderOffset, boolean absoluteEncoderReversed) {
@@ -35,6 +39,7 @@ public class SwerveModule {
         this.absoluteEncoderOffsetRad = absoluteEncoderOffset;
         this.absoluteEncoderReversed = absoluteEncoderReversed;
         absoluteEncoder = new WPI_CANCoder(absoluteEncoderId);
+        this.canCoder = new CANCoder(absoluteEncoderId);
 
         driveMotor = new CANSparkMax(driveMotorId, MotorType.kBrushless);
         turningMotor = new CANSparkMax(turningMotorId, MotorType.kBrushless);
@@ -73,7 +78,12 @@ public class SwerveModule {
     }
 
     public double getAbsoluteEncoderRad() {
-        double angle = absoluteEncoder.getBusVoltage() / RobotController.getVoltage5V();
+        // Configure the CANCoder
+        CANCoderConfiguration config = new CANCoderConfiguration();
+        config.initializationStrategy = SensorInitializationStrategy.BootToZero;
+        config.sensorCoefficient = 360.0 / 4096.0; // Ticks per degree
+        this.canCoder.configAllSettings(config);
+        double angle = this.canCoder.getAbsolutePosition();
         angle *= 2.0 * Math.PI;
         angle -= absoluteEncoderOffsetRad;
         SmartDashboard.putNumber("Voltage[" + absoluteEncoder.getDeviceID() + "]", absoluteEncoder.getPosition());
