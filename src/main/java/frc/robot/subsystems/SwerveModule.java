@@ -35,7 +35,6 @@ public class SwerveModule {
         this.absoluteEncoderOffsetRad = absoluteEncoderOffset;
         this.absoluteEncoderReversed = absoluteEncoderReversed;
         absoluteEncoder = new WPI_CANCoder(absoluteEncoderId);
-        
 
         driveMotor = new CANSparkMax(driveMotorId, MotorType.kBrushless);
         turningMotor = new CANSparkMax(turningMotorId, MotorType.kBrushless);
@@ -77,10 +76,17 @@ public class SwerveModule {
         double angle = absoluteEncoder.getBusVoltage() / RobotController.getVoltage5V();
         angle *= 2.0 * Math.PI;
         angle -= absoluteEncoderOffsetRad;
+        SmartDashboard.putNumber("Voltage[" + absoluteEncoder.getDeviceID() + "]", absoluteEncoder.getPosition());
+        SmartDashboard.putNumber("Voltage[" + absoluteEncoder.getDeviceID() + "]", absoluteEncoder.getBusVoltage());
+        SmartDashboard.putNumber("5 Voltage[" + absoluteEncoder.getDeviceID() + "]", RobotController.getVoltage5V());
         return angle * (absoluteEncoderReversed ? -1.0 : 1.0);
     }
 
+    /**
+     * sets position to 0 degrees (wheels face foward (the opposite of backward))
+     */
     public void resetEncoders() {
+
         driveEncoder.setPosition(0);
         turningEncoder.setPosition(getAbsoluteEncoderRad());
     }
@@ -94,14 +100,17 @@ public class SwerveModule {
     }
 
     public void setDesiredState(SwerveModuleState state) {
-        if (Math.abs(state.speedMetersPerSecond) < 0.001) {
-            stop();
-            return;
-        }
+        /*
+         * if (Math.abs(state.speedMetersPerSecond) < 0.001) {
+         * stop();
+         * return;
+         * }
+         */
         state = SwerveModuleState.optimize(state, getState().angle);
         driveMotor.set(state.speedMetersPerSecond / DriveConstants.kPhysicalMaxSpeedMetersPerSecond);
         turningMotor.set(turningPidController.calculate(getTurningPosition(), state.angle.getRadians()));
         SmartDashboard.putString("Swerve[" + absoluteEncoder.getDeviceID() + "] state", state.toString());
+
     }
 
     public void stop() {
