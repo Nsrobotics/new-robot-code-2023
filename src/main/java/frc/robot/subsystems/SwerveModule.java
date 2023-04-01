@@ -84,12 +84,16 @@ public class SwerveModule {
         config.sensorCoefficient = 360.0 / 4096.0; // Ticks per degree
         this.canCoder.configAllSettings(config);
         double angle = this.canCoder.getAbsolutePosition();
-        angle *= 2.0 * Math.PI;
-        angle -= absoluteEncoderOffsetRad;
+        double position = this.canCoder.getPosition();
+        // angle *= 2.0 * Math.PI;
+        angle += absoluteEncoderOffsetRad;
         SmartDashboard.putNumber("Voltage[" + absoluteEncoder.getDeviceID() + "]", absoluteEncoder.getPosition());
         SmartDashboard.putNumber("Voltage[" + absoluteEncoder.getDeviceID() + "]", absoluteEncoder.getBusVoltage());
         SmartDashboard.putNumber("5 Voltage[" + absoluteEncoder.getDeviceID() + "]", RobotController.getVoltage5V());
+        SmartDashboard.putNumber("angle[" + absoluteEncoder.getDeviceID() + "]", angle);
+        SmartDashboard.putNumber("position[" + absoluteEncoder.getDeviceID() + "]", position);
         return angle * (absoluteEncoderReversed ? -1.0 : 1.0);
+
     }
 
     /**
